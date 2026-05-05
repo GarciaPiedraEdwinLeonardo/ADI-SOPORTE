@@ -4,6 +4,9 @@ import helmet from 'helmet'
 
 // Routes
 import faqsRoutes from './modules/faqs/faqs.routes.js'
+import errorTypesRoutes from './modules/error-types/error-types.routes.js'
+import ticketsRoutes from './modules/tickets/tickets.routes.js'
+import areasRoutes from './modules/areas/areas.routes.js'
 
 const app = express()
 
@@ -14,6 +17,9 @@ app.use(express.json())
 
 // --- Routes ---
 app.use('/api/faqs', faqsRoutes)
+app.use('/api/error-types', errorTypesRoutes)
+app.use('/api/tickets', ticketsRoutes)
+app.use('/api/areas', areasRoutes)
 
 // --- Health check ---
 app.get('/api/health', (req, res) => {

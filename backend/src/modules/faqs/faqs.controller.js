@@ -1,4 +1,4 @@
-import { getAllFaqs, getFaqsByArea, getAllAreas } from './faqs.queries.js'
+import { getAllFaqs, getFaqsByArea } from './faqs.queries.js'
 
 export const getFaqs = async (req, res, next) => {
   try {
@@ -23,15 +23,6 @@ export const getFaqsByAreaId = async (req, res, next) => {
       return res.status(404).json({ ok: false, error: 'No se encontraron FAQs para esta área' })
     }
 
-    res.json({ ok: true, data })
-  } catch (err) {
-    next(err)
-  }
-}
-
-export const getAreas = async (req, res, next) => {
-  try {
-    const data = await getAllAreas()
     res.json({ ok: true, data })
   } catch (err) {
     next(err)
