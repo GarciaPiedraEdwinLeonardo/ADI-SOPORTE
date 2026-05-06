@@ -48,6 +48,4 @@ router.put(
   updateUser,
 );
 
-
-
 export default router;

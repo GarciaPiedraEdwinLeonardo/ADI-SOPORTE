@@ -4,6 +4,8 @@ import {
   createTicketValidation,
   getUserTickets,
   getUserTicketDetail,
+  getTickets,
+  getTicket
 } from "./tickets.controller.js";
 
 const router = Router();

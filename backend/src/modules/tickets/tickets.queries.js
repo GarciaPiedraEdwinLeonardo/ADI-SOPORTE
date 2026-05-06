@@ -108,3 +108,77 @@ export const getTicketDetailByUser = async (ticket_id, adi_user_id) => {
   if (error) throw error;
   return data;
 };
+
+export const getAllTickets = async () => {
+  const { data, error } = await supabase
+    .from("tickets")
+    .select(`
+      id,
+      description,
+      evidence_url,
+      resolution_note,
+      reopened_count,
+      sla_deadline,
+      created_at,
+      updated_at,
+      assigned_to,
+      areas ( id, name ),
+      error_types ( id, name ),
+      status ( id, name ),
+      priority ( id, name, sla_hours )
+    `)
+    .order("created_at", { ascending: false })
+
+  if (error) throw error
+  return data
+}
+
+export const getTicketsByTechnician = async (assigned_to) => {
+  const { data, error } = await supabase
+    .from("tickets")
+    .select(`
+      id,
+      description,
+      evidence_url,
+      resolution_note,
+      reopened_count,
+      sla_deadline,
+      created_at,
+      updated_at,
+      assigned_to,
+      areas ( id, name ),
+      error_types ( id, name ),
+      status ( id, name ),
+      priority ( id, name, sla_hours )
+    `)
+    .eq("assigned_to", Number(assigned_to))
+    .order("created_at", { ascending: false })
+
+  if (error) throw error
+  return data
+}
+
+export const getTicketById = async (ticket_id) => {
+  const { data, error } = await supabase
+    .from("tickets")
+    .select(`
+      id,
+      description,
+      evidence_url,
+      resolution_note,
+      reopened_count,
+      sla_deadline,
+      created_at,
+      updated_at,
+      assigned_to,
+      areas ( id, name ),
+      error_types ( id, name ),
+      status ( id, name ),
+      priority ( id, name, sla_hours )
+    `)
+    .eq("id", Number(ticket_id))
+    .maybeSingle()
+
+  if (error) throw error
+  return data
+}

@@ -3,6 +3,9 @@ import {
   createTicket,
   getTicketDetailByUser,
   getTicketsByUser,
+  getAllTickets,
+  getTicketsByTechnician,
+  getTicketById,
 } from "./tickets.queries.js";
 
 export const createTicketValidation = [
@@ -103,3 +106,49 @@ export const getUserTicketDetail = async (req, res, next) => {
     next(err);
   }
 };
+
+// --- TODOS LOS TICKETS (admin ve todo, técnico solo los suyos) ---
+export const getTickets = async (req, res, next) => {
+  try {
+    const { role, id } = req.user
+
+    const data = role === 1
+      ? await getAllTickets()
+      : await getTicketsByTechnician(id)
+
+    if (!data.length) {
+      return res.status(404).json({ ok: false, error: "No se encontraron tickets" })
+    }
+
+    res.json({ ok: true, total: data.length, data })
+  } catch (err) {
+    next(err)
+  }
+}
+
+// --- DETALLE DE UN TICKET (admin ve todo, técnico solo los suyos) ---
+export const getTicket = async (req, res, next) => {
+  try {
+    const { id: ticket_id } = req.params
+    const { role, id: user_id } = req.user
+
+    if (isNaN(ticket_id)) {
+      return res.status(400).json({ ok: false, error: "id debe ser un número" })
+    }
+
+    const data = await getTicketById(ticket_id)
+
+    if (!data) {
+      return res.status(404).json({ ok: false, error: "Ticket no encontrado" })
+    }
+
+    // Si es técnico, verificar que el ticket le pertenece
+    if (role !== 1 && data.assigned_to !== user_id) {
+      return res.status(403).json({ ok: false, error: "No tienes acceso a este ticket" })
+    }
+
+    res.json({ ok: true, data })
+  } catch (err) {
+    next(err)
+  }
+}
