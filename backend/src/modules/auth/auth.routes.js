@@ -9,6 +9,8 @@ import {
   changePasswordValidation,
   updateUser,
   updateUserValidation,
+  getUsers,
+  getUser
 } from "./auth.controller.js";
 import { authenticate, isAdmin } from "../../middlewares/auth.middleware.js";
 
@@ -31,6 +33,12 @@ router.put(
   changePassword,
 );
 
+// GET /api/auth/users — lista de técnicos (solo admin)
+router.get("/users", authenticate, isAdmin, getUsers)
+
+// GET /api/auth/users/:id — detalle de un técnico (solo admin)
+router.get("/users/:id", authenticate, isAdmin, getUser)
+
 // PUT /api/auth/users/:id — solo admin
 router.put(
   "/users/:id",
@@ -39,5 +47,7 @@ router.put(
   updateUserValidation,
   updateUser,
 );
+
+
 
 export default router;

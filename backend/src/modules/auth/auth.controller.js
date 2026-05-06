@@ -7,7 +7,9 @@ import {
   updateLastLogin,
   updatePassword,
   updateUserData,
-  findUserById
+  findUserById,
+  getAllUsers,
+  getUserById
 } from "./auth.queries.js";
 
 const generateToken = (user) => {
@@ -313,3 +315,39 @@ export const updateUser = async (req, res, next) => {
     next(err);
   }
 };
+
+// --- LISTA DE TÉCNICOS (solo admin) ---
+export const getUsers = async (req, res, next) => {
+  try {
+    const data = await getAllUsers()
+
+    if (!data.length) {
+      return res.status(404).json({ ok: false, error: "No se encontraron usuarios" })
+    }
+
+    res.json({ ok: true, total: data.length, data })
+  } catch (err) {
+    next(err)
+  }
+}
+
+// --- DETALLE DE UN TÉCNICO (solo admin) ---
+export const getUser = async (req, res, next) => {
+  try {
+    const { id } = req.params
+
+    if (isNaN(id)) {
+      return res.status(400).json({ ok: false, error: "id debe ser un número" })
+    }
+
+    const data = await getUserById(id)
+
+    if (!data) {
+      return res.status(404).json({ ok: false, error: "Usuario no encontrado" })
+    }
+
+    res.json({ ok: true, data })
+  } catch (err) {
+    next(err)
+  }
+}

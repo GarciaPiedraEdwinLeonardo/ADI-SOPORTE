@@ -80,3 +80,24 @@ export const updateUserData = async (id, fields) => {
   if (error) throw error;
   return data;
 };
+
+export const getAllUsers = async () => {
+  const { data, error } = await supabase
+    .from("support_users")
+    .select("id, name, apat, amat, email, role, is_active, created_at, last_login")
+    .order("id", { ascending: true })
+
+  if (error) throw error
+  return data
+}
+
+export const getUserById = async (id) => {
+  const { data, error } = await supabase
+    .from("support_users")
+    .select("id, name, apat, amat, email, role, is_active, created_at, last_login")
+    .eq("id", Number(id))
+    .maybeSingle()
+
+  if (error) throw error
+  return data
+}
