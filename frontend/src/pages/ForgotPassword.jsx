@@ -1,4 +1,3 @@
-// src/pages/ForgotPassword.jsx
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
@@ -18,19 +17,30 @@ export default function ForgotPassword() {
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [focusedField, setFocusedField] = useState('')
+  
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    
+
+    // Validación consistente con el backend
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
     if (!email.trim()) {
       setError('Ingresa tu correo electrónico')
       return
     }
-    
+    if (!emailRegex.test(email)) {
+      setError('Email inválido')
+      return
+    }
+    if (email.length < 8 || email.length > 200) {
+      setError('El email debe tener entre 8 y 200 caracteres')
+      return
+    }
+
     setLoading(true)
     setError('')
-    
-    // Lógica pendiente de implementar
+
     // try {
     //   await authService.forgotPassword(email)
     //   setSuccess(true)

@@ -1,4 +1,3 @@
-// src/pages/Login.jsx
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
@@ -23,19 +22,42 @@ export default function Login() {
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [focusedField, setFocusedField] = useState('')
+  const [errors, setErrors] = useState({})
+
+  const validate = () => {
+    const newErrors = {}
+
+    // Email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!form.email.trim()) {
+      newErrors.email = 'El correo es obligatorio'
+    } else if (!emailRegex.test(form.email)) {
+      newErrors.email = 'Email inválido'
+    } else if (form.email.length < 8 || form.email.length > 200) {
+      newErrors.email = 'El email debe tener entre 8 y 200 caracteres'
+    }
+
+    // Password
+    if (!form.password.trim()) {
+      newErrors.password = 'La contraseña es requerida'
+    }
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value })
+    // Limpiar error del campo al escribir
+    if (errors[e.target.name]) {
+      setErrors({ ...errors, [e.target.name]: '' })
+    }
     if (error) setError('')
   }
 
+
   const handleSubmit = async (e) => {
     e.preventDefault()
-    
-    if (!form.email.trim() || !form.password.trim()) {
-      setError('Todos los campos son obligatorios')
-      return
-    }
+    if(!validate()) return
     
     setLoading(true)
     setError('')
@@ -154,11 +176,15 @@ export default function Login() {
                     onFocus={() => setFocusedField('email')}
                     onBlur={() => setFocusedField('')}
                     placeholder="usuario@adi.mx"
-                    required
                     autoComplete="email"
                     className={styles.input}
                   />
                 </div>
+                {errors.email && (
+                  <span className={styles.fieldErrorMsg}>
+                    <MdErrorOutline /> {errors.email}
+                  </span>
+                )}
               </div>
 
               <div className={`${styles.fieldGroup} ${focusedField === 'password' ? styles.fieldFocused : ''}`}>
@@ -175,7 +201,6 @@ export default function Login() {
                     onFocus={() => setFocusedField('password')}
                     onBlur={() => setFocusedField('')}
                     placeholder="Ingresa tu contraseña"
-                    required
                     autoComplete="current-password"
                     className={styles.input}
                   />
@@ -188,6 +213,11 @@ export default function Login() {
                     {showPassword ? <MdVisibilityOff /> : <MdVisibility />}
                   </button>
                 </div>
+                {errors.password && (
+                  <span className={styles.fieldErrorMsg}>
+                    <MdErrorOutline /> {errors.password}
+                  </span>
+                )}
               </div>
 
               <div className={styles.formOptions}>
