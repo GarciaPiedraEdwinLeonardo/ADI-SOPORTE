@@ -1,0 +1,230 @@
+/* src/components/Sidebar/Sidebar.module.css */
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  background: var(--color-grafito-950);
+  min-height: 100vh;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  transition: width 220ms ease;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+/* ── Header ─────────────────────────────────────────────────────────────── */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px var(--space-4);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  min-height: 64px;
+}
+
+.logoMark {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  overflow: hidden;
+}
+
+.logoIcon {
+  color: var(--color-primary);
+  font-size: 26px;
+  flex-shrink: 0;
+}
+
+.logoText {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-primary);
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  transition: opacity 200ms, width 200ms;
+}
+
+.logoTextHidden {
+  opacity: 0;
+  width: 0;
+}
+
+.toggleBtn {
+  background: rgba(255, 255, 255, 0.06);
+  border: none;
+  color: var(--color-gray-400);
+  border-radius: var(--radius-sm);
+  width: 26px;
+  height: 26px;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 150ms, color 150ms;
+}
+
+.toggleBtn:hover {
+  background: rgba(255, 255, 255, 0.10);
+  color: var(--color-gray-200);
+}
+
+/* ── Nav ─────────────────────────────────────────────────────────────────── */
+.nav {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-4) var(--space-2);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px var(--space-3);
+  border-radius: var(--radius-md);
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: background 150ms;
+  position: relative;
+  white-space: nowrap;
+  width: 100%;
+  text-align: left;
+}
+
+.navItem:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.navItemActive {
+  background: rgba(132, 204, 22, 0.10);
+}
+
+.navItemActive:hover {
+  background: rgba(132, 204, 22, 0.14);
+}
+
+.navIcon {
+  display: flex;
+  align-items: center;
+  font-size: 18px;
+  flex-shrink: 0;
+  color: var(--color-gray-400);
+  transition: color 150ms;
+}
+
+.navIconActive {
+  color: var(--color-primary);
+}
+
+.navLabel {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-gray-400);
+  transition: color 150ms, opacity 200ms;
+}
+
+.navLabelActive {
+  color: var(--color-primary);
+}
+
+.navLabelHidden {
+  opacity: 0;
+  width: 0;
+  overflow: hidden;
+}
+
+.navDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* ── Footer / User ───────────────────────────────────────────────────────── */
+.footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding: var(--space-4);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  min-height: 68px;
+}
+
+.userChip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  overflow: hidden;
+  flex: 1;
+}
+
+.avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  color: var(--color-grafito-950);
+  font-weight: 700;
+  font-size: var(--text-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.userInfo {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: opacity 200ms;
+}
+
+.userInfoHidden {
+  opacity: 0;
+  width: 0;
+  overflow: hidden;
+}
+
+.userName {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #E5E7EB;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.userRole {
+  font-size: var(--text-xs);
+  color: var(--color-gray-400);
+}
+
+.logoutBtn {
+  background: rgba(255, 255, 255, 0.04);
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 7px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  font-size: 17px;
+  color: var(--color-gray-400);
+  flex-shrink: 0;
+  transition: background 150ms, color 150ms;
+}
+
+.logoutBtn:hover {
+  background: rgba(220, 38, 38, 0.12);
+  color: #FCA5A5;
+}
