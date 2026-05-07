@@ -9,8 +9,13 @@ import {
   updateUserData,
   findUserById,
   getAllUsers,
-  getUserById
+  getUserById,
+  createResetToken,
+  findResetToken,
+  markTokenUsed,
 } from "./auth.queries.js";
+import { sendPasswordResetEmail } from "./../../services/email.service.js";
+import crypto from "crypto";
 
 const generateToken = (user) => {
   return jwt.sign(
@@ -206,12 +211,10 @@ export const changePassword = async (req, res, next) => {
     }
 
     if (new_password === current_password) {
-      return res
-        .status(400)
-        .json({
-          ok: false,
-          error: "La nueva contraseña no puede ser igual a la actual",
-        });
+      return res.status(400).json({
+        ok: false,
+        error: "La nueva contraseña no puede ser igual a la actual",
+      });
     }
 
     const hashedPassword = await bcrypt.hash(new_password, 10);
@@ -319,35 +322,190 @@ export const updateUser = async (req, res, next) => {
 // --- LISTA DE TÉCNICOS (solo admin) ---
 export const getUsers = async (req, res, next) => {
   try {
-    const data = await getAllUsers()
+    const data = await getAllUsers();
 
     if (!data.length) {
-      return res.status(404).json({ ok: false, error: "No se encontraron usuarios" })
+      return res
+        .status(404)
+        .json({ ok: false, error: "No se encontraron usuarios" });
     }
 
-    res.json({ ok: true, total: data.length, data })
+    res.json({ ok: true, total: data.length, data });
   } catch (err) {
-    next(err)
+    next(err);
   }
-}
+};
 
 // --- DETALLE DE UN TÉCNICO (solo admin) ---
 export const getUser = async (req, res, next) => {
   try {
-    const { id } = req.params
+    const { id } = req.params;
 
     if (isNaN(id)) {
-      return res.status(400).json({ ok: false, error: "id debe ser un número" })
+      return res
+        .status(400)
+        .json({ ok: false, error: "id debe ser un número" });
     }
 
-    const data = await getUserById(id)
+    const data = await getUserById(id);
 
     if (!data) {
-      return res.status(404).json({ ok: false, error: "Usuario no encontrado" })
+      return res
+        .status(404)
+        .json({ ok: false, error: "Usuario no encontrado" });
     }
 
-    res.json({ ok: true, data })
+    res.json({ ok: true, data });
   } catch (err) {
-    next(err)
+    next(err);
   }
-}
+};
+
+export const forgotPasswordValidation = [
+  body("email")
+    .isEmail()
+    .withMessage("Email inválido")
+    .isLength({ min: 8, max: 200 })
+    .withMessage("El email debe tener entre 8 y 200 caracteres"),
+];
+
+/**
+ * POST /api/auth/forgot-password
+ * Pública — no requiere autenticación.
+ *
+ * Siempre responde con el mismo mensaje 200 para no revelar
+ * si el email existe o no (protección contra enumeración).
+ */
+export const forgotPassword = async (req, res, next) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ ok: false, errors: errors.array() });
+    }
+
+    const { email } = req.body;
+
+    // Respuesta genérica — no revelar si el usuario existe
+    const genericOk = () =>
+      res.json({
+        ok: true,
+        message:
+          "Si el correo está registrado, recibirás las instrucciones en breve.",
+      });
+
+    const user = await findUserByEmail(email);
+    if (!user || !user.is_active) return genericOk();
+
+    // Token aleatorio de 32 bytes → 64 chars hex
+    const token = crypto.randomBytes(32).toString("hex");
+    const expires_at = new Date(Date.now() + 60 * 60 * 1000).toISOString(); // +1 hora
+
+    await createResetToken(user.id, token, expires_at);
+
+    await sendPasswordResetEmail({
+      email: user.email,
+      name: user.name,
+      token,
+    });
+
+    return genericOk();
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ─── RESET PASSWORD ───────────────────────────────────────────────────────────
+
+export const resetPasswordValidation = [
+  body("token").notEmpty().withMessage("Token requerido"),
+  body("new_password")
+    .isLength({ min: 8, max: 20 })
+    .withMessage("La contraseña debe tener entre 8 y 20 caracteres")
+    .matches(/^[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]*$/)
+    .withMessage("La contraseña contiene caracteres no permitidos")
+    .matches(/[a-z]/)
+    .withMessage("Debe tener al menos una minúscula")
+    .matches(/[A-Z]/)
+    .withMessage("Debe tener al menos una mayúscula"),
+  body("confirm_password")
+    .notEmpty()
+    .withMessage("Confirma la nueva contraseña"),
+];
+
+/**
+ * POST /api/auth/reset-password
+ * Pública — consume el token generado en forgot-password.
+ */
+export const resetPassword = async (req, res, next) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ ok: false, errors: errors.array() });
+    }
+
+    const { token, new_password, confirm_password } = req.body;
+
+    if (new_password !== confirm_password) {
+      return res
+        .status(400)
+        .json({ ok: false, error: "Las contraseñas no coinciden" });
+    }
+
+    const record = await findResetToken(token);
+
+    if (!record) {
+      return res.status(400).json({ ok: false, error: "Token inválido" });
+    }
+    if (record.used) {
+      return res
+        .status(400)
+        .json({ ok: false, error: "El token ya fue utilizado" });
+    }
+    if (new Date(record.expires_at) < new Date()) {
+      return res.status(400).json({ ok: false, error: "El token ha expirado" });
+    }
+
+    const hashedPassword = await bcrypt.hash(new_password, 10);
+    await updatePassword(record.user_id, hashedPassword);
+    await markTokenUsed(record.id);
+
+    res.json({ ok: true, message: "Contraseña restablecida correctamente" });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * GET /api/auth/validate-reset-token?token=xxx
+ * Pública — solo verifica si el token es válido sin consumirlo.
+ */
+export const validateResetToken = async (req, res, next) => {
+  try {
+    const { token } = req.query;
+
+    if (!token) {
+      return res.status(400).json({ ok: false, error: "Token requerido" });
+    }
+
+    const record = await findResetToken(token);
+
+    if (!record) {
+      return res
+        .status(400)
+        .json({ ok: false, error: "El enlace es inválido o ya fue utilizado" });
+    }
+
+    if (new Date(record.expires_at) < new Date()) {
+      return res
+        .status(400)
+        .json({
+          ok: false,
+          error: "El enlace ha expirado. Solicita uno nuevo.",
+        });
+    }
+
+    res.json({ ok: true });
+  } catch (err) {
+    next(err);
+  }
+};

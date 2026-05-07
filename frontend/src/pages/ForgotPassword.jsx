@@ -8,6 +8,7 @@ import {
   MdCheckCircleOutline,
 } from 'react-icons/md'
 import styles from './ForgotPassword.module.css'
+import {authService} from '../services/authService'
 
 export default function ForgotPassword() {
   const navigate = useNavigate()
@@ -41,14 +42,14 @@ export default function ForgotPassword() {
     setLoading(true)
     setError('')
 
-    // try {
-    //   await authService.forgotPassword(email)
-    //   setSuccess(true)
-    // } catch (err) {
-    //   setError(err.message || 'Error al enviar el correo')
-    // } finally {
-    //   setLoading(false)
-    // }
+    try {
+      await authService.forgotPassword(email)
+      setSuccess(true)
+    } catch (err) {
+      setError(err.message || 'Error al enviar el correo')
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleBack = (e) => {

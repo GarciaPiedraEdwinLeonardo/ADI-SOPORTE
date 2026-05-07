@@ -10,7 +10,12 @@ import {
   updateUser,
   updateUserValidation,
   getUsers,
-  getUser
+  getUser,
+  forgotPassword,
+  forgotPasswordValidation,
+  resetPassword,
+  resetPasswordValidation,
+  validateResetToken,
 } from "./auth.controller.js";
 import { authenticate, isAdmin } from "../../middlewares/auth.middleware.js";
 
@@ -34,10 +39,10 @@ router.put(
 );
 
 // GET /api/auth/users — lista de técnicos (solo admin)
-router.get("/users", authenticate, isAdmin, getUsers)
+router.get("/users", authenticate, isAdmin, getUsers);
 
 // GET /api/auth/users/:id — detalle de un técnico (solo admin)
-router.get("/users/:id", authenticate, isAdmin, getUser)
+router.get("/users/:id", authenticate, isAdmin, getUser);
 
 // PUT /api/auth/users/:id — solo admin
 router.put(
@@ -47,5 +52,14 @@ router.put(
   updateUserValidation,
   updateUser,
 );
+
+// POST /api/auth/forgot-password — cualquier usuario
+router.post("/forgot-password", forgotPasswordValidation, forgotPassword);
+
+// POST /api/auth/reset-password — cualquier usuario con token válido
+router.post("/reset-password", resetPasswordValidation, resetPassword);
+
+// GET /api/auth/validate-reset-token  — pública
+router.get("/validate-reset-token", validateResetToken);
 
 export default router;
