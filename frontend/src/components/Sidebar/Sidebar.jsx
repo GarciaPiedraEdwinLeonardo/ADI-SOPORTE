@@ -1,120 +1,175 @@
 // src/components/Sidebar/Sidebar.jsx
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import {
-  MdDashboard,
+  MdHome,
+  MdPeople,
   MdConfirmationNumber,
   MdQuestionAnswer,
-  MdBusiness,
-  MdPeople,
-  MdLogout,
   MdChevronLeft,
   MdChevronRight,
+  MdMenu,
+  MdClose,
+  MdLogout,
 } from 'react-icons/md'
-import { RiShieldCheckLine } from 'react-icons/ri'
 import styles from './Sidebar.module.css'
 
-const ROLE_LABELS = { 1: 'Administrador', 2: 'Técnico', 3: 'Operador' }
-
 const NAV_ITEMS = [
-  { label: 'Dashboard', icon: MdDashboard,          path: '/dashboard', adminOnly: false },
-  { label: 'Tickets',   icon: MdConfirmationNumber, path: '/tickets',   adminOnly: false },
-  { label: 'FAQs',      icon: MdQuestionAnswer,     path: '/faqs',      adminOnly: false },
-  { label: 'Áreas',     icon: MdBusiness,           path: '/areas',     adminOnly: false },
-  { label: 'Usuarios',  icon: MdPeople,             path: '/usuarios',  adminOnly: true  },
+  { label: 'Inicio', icon: MdHome, path: '/dashboard' },
+  { label: 'Técnicos', icon: MdPeople, path: '/tecnicos', adminOnly: true },
+  { label: 'Tickets', icon: MdConfirmationNumber, path: '/tickets/admin', adminOnly: true },
+  { label: 'Tickets', icon: MdConfirmationNumber, path: '/tickets/tecnico', techOnly: true },
+  { label: 'FAQs', icon: MdQuestionAnswer, path: '/faqs', adminOnly: true },
 ]
 
 export default function Sidebar({ activePath = '/dashboard' }) {
   const { user, logout } = useAuth()
-  const navigate         = useNavigate()
-  const [open, setOpen]  = useState(true)
+  const navigate = useNavigate()
+  const [open, setOpen] = useState(true)
+  const [mobileOpen, setMobileOpen] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+
+  const isAdmin = user?.role === 1
+  const isTech  = user?.role === 2
+
+  const visibleItems = NAV_ITEMS.filter((item) => {
+    if (item.adminOnly) return isAdmin
+    if (item.techOnly)  return isTech
+    return true
+  })
+
+  // Detectar si es móvil
+  useEffect(() => {
+    const checkMobile = () => {
+      const mobile = window.innerWidth <= 768
+      setIsMobile(mobile)
+      if (!mobile) {
+        setMobileOpen(false)
+      }
+    }
+    
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+
+  // Cerrar mobile al navegar
+  const handleNavigate = (path) => {
+    navigate(path)
+    if (isMobile) {
+      setMobileOpen(false)
+    }
+  }
 
   const handleLogout = () => {
     logout()
     navigate('/login')
+    if (isMobile) {
+      setMobileOpen(false)
+    }
   }
 
-  const visibleItems = NAV_ITEMS.filter(
-    (item) => !item.adminOnly || user?.role === 1
-  )
+  const toggleMobile = () => {
+    setMobileOpen(!mobileOpen)
+  }
 
   return (
-    <aside
-      className={styles.sidebar}
-      style={{ width: open ? '240px' : '64px' }}
-    >
-      {/* Header / Logo */}
-      <div className={styles.header}>
-        <div className={styles.logoMark}>
-          <RiShieldCheckLine className={styles.logoIcon} />
-          <span className={`${styles.logoText} ${!open ? styles.logoTextHidden : ''}`}>
-            ADI
-          </span>
-        </div>
-        <button
-          className={styles.toggleBtn}
-          onClick={() => setOpen(!open)}
-          aria-label={open ? 'Cerrar menú' : 'Abrir menú'}
-        >
-          {open ? <MdChevronLeft /> : <MdChevronRight />}
-        </button>
-      </div>
+    <>
+      {/* Overlay para móvil */}
+      {isMobile && mobileOpen && (
+        <div 
+          className={styles.overlay} 
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
 
-      {/* Nav */}
-      <nav className={styles.nav}>
-        {visibleItems.map((item) => {
-          const isActive = activePath === item.path
-          const Icon     = item.icon
-          return (
+      {/* Botón hamburguesa (solo móvil) */}
+      {isMobile && (
+        <button 
+          className={styles.hamburger}
+          onClick={toggleMobile}
+          aria-label="Abrir menú"
+        >
+          {mobileOpen ? <MdClose size={22} /> : <MdMenu size={22} />}
+        </button>
+      )}
+
+      {/* Sidebar */}
+      <aside 
+        className={`
+          ${styles.sidebar} 
+          ${open ? styles.open : styles.closed}
+          ${isMobile ? styles.mobile : ''}
+          ${isMobile && mobileOpen ? styles.mobileOpen : ''}
+        `}
+      >
+        {/* Header / Logo */}
+        <div className={styles.header}>
+          <div className={styles.logoArea}>
+            {/* ESPACIO CIRCULAR PARA EL LOGO */}
+            <div className={styles.logoCircle}>
+                <img src="logo.png" alt="Logo ADI" className={styles.logoImg} />
+            </div>
+            {open && <span className={styles.logoText}>ADI</span>}
+          </div>
+          
+          {/* Botón toggle solo en desktop */}
+          {!isMobile && (
             <button
-              key={item.label}
-              className={`${styles.navItem} ${isActive ? styles.navItemActive : ''}`}
-              onClick={() => navigate(item.path)}
-              title={!open ? item.label : undefined}
+              className={styles.toggleBtn}
+              onClick={() => setOpen(!open)}
+              aria-label={open ? 'Colapsar menú' : 'Expandir menú'}
             >
-              <span className={`${styles.navIcon} ${isActive ? styles.navIconActive : ''}`}>
-                <Icon />
-              </span>
-              <span
-                className={`
-                  ${styles.navLabel}
-                  ${isActive ? styles.navLabelActive : ''}
-                  ${!open   ? styles.navLabelHidden : ''}
-                `}
-              >
-                {item.label}
-              </span>
-              {isActive && open && <span className={styles.navDot} />}
+              {open ? <MdChevronLeft /> : <MdChevronRight />}
             </button>
-          )
-        })}
-      </nav>
-
-      {/* Footer / User */}
-      <div className={styles.footer}>
-        <div className={styles.userChip}>
-          <div className={styles.avatar}>
-            {user?.name?.[0]?.toUpperCase() ?? 'U'}
-          </div>
-          <div className={`${styles.userInfo} ${!open ? styles.userInfoHidden : ''}`}>
-            <span className={styles.userName}>
-              {user?.name} {user?.apat}
-            </span>
-            <span className={styles.userRole}>
-              {ROLE_LABELS[user?.role] ?? 'Usuario'}
-            </span>
-          </div>
+          )}
         </div>
-        <button
-          className={styles.logoutBtn}
-          onClick={handleLogout}
-          aria-label="Cerrar sesión"
-          title="Cerrar sesión"
-        >
-          <MdLogout />
-        </button>
-      </div>
-    </aside>
+
+        {/* Navegación */}
+        <nav className={styles.nav}>
+          {visibleItems.map((item) => {
+            const isActive = activePath === item.path
+            const Icon = item.icon
+            return (
+              <button
+                key={`${item.label}-${item.path}`}
+                className={`${styles.navItem} ${isActive ? styles.navItemActive : ''}`}
+                onClick={() => handleNavigate(item.path)}
+                title={!open && !isMobile ? item.label : undefined}
+              >
+                <Icon className={`${styles.navIcon} ${isActive ? styles.navIconActive : ''}`} />
+                {open && (
+                  <span className={`${styles.navLabel} ${isActive ? styles.navLabelActive : ''}`}>
+                    {item.label}
+                  </span>
+                )}
+                {isActive && open && <span className={styles.activeDot} />}
+              </button>
+            )
+          })}
+        </nav>
+
+        {/* Footer con usuario y logout */}
+        <div className={styles.footer}>
+          <div className={styles.user}>
+            <div className={styles.avatar}>
+              {user?.name?.[0]?.toUpperCase() || 'U'}
+            </div>
+            {open && (
+              <div className={styles.userInfo}>
+                <span className={styles.userName}>{user?.name} {user?.apat}</span>
+                <span className={styles.userRole}>
+                  {user?.role === 1 ? 'Administrador' : user?.role === 2 ? 'Técnico' : 'Operador'}
+                </span>
+              </div>
+            )}
+          </div>
+          <button className={styles.logoutBtn} onClick={handleLogout} title="Cerrar sesión">
+            <MdLogout />
+          </button>
+        </div>
+      </aside>
+    </>
   )
 }

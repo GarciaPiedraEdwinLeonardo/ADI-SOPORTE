@@ -1,6 +1,4 @@
 // src/components/index.js
-// Re-exporta todos los componentes compartidos para imports limpios:
-// import { Sidebar, ProtectedRoute } from '../components'
-
-export { default as Sidebar }         from './Sidebar'
-export { default as ProtectedRoute }  from './ProtectedRoute'
+export { default as Sidebar }        from './Sidebar'
+export { default as TopBar }         from './TopBar'
+export { default as ProtectedRoute } from './ProtectedRoute'
