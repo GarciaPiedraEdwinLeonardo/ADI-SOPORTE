@@ -12,7 +12,7 @@ import {
   MdCheck,
   MdClose,
 } from 'react-icons/md'
-import { authService } from '../services/authService'
+import { authService } from '../../services/authService'
 import styles from './ResetPassword.module.css'
 
 export default function ResetPassword() {

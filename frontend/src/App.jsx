@@ -2,11 +2,11 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import { ProtectedRoute } from './components'
-import Login from './pages/Login'
-import Dashboard from './pages/Dashboard'
-import ForgotPassword from './pages/ForgotPassword'
-import ResetPassword from './pages/ResetPassword'
-import Tecnicos from './pages/Tecnicos'
+import Login from './pages/auth/Login'
+import Dashboard from './pages/dashboard/Dashboard'
+import ForgotPassword from './pages/auth/ForgotPassword'
+import ResetPassword from './pages/auth/ResetPassword'
+import Tecnicos from './pages/tecnicos/Tecnicos'
 
 export default function App() {
   return (

@@ -8,7 +8,7 @@ import {
   MdCheckCircleOutline,
 } from 'react-icons/md'
 import styles from './ForgotPassword.module.css'
-import {authService} from '../services/authService'
+import {authService} from '../../services/authService'
 
 export default function ForgotPassword() {
   const navigate = useNavigate()

@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { useAuth } from '../context/AuthContext'
-import { authService } from '../services/authService'
+import { useAuth } from '../../context/AuthContext'
+import { authService } from '../../services/authService'
 import {
   MdEmail,
   MdLock,
@@ -57,11 +57,11 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if(!validate()) return
-    
+    if (!validate()) return
+
     setLoading(true)
     setError('')
-    
+
     try {
       const data = await authService.login(form.email, form.password)
       login(data.token, data.user)
@@ -79,7 +79,7 @@ export default function Login() {
   }
 
   return (
-    <motion.div 
+    <motion.div
       className={styles.root}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -87,7 +87,7 @@ export default function Login() {
       transition={{ duration: 0.3 }}
     >
       <div className={styles.container}>
-        <motion.div 
+        <motion.div
           className={styles.brandSection}
           initial={{ x: -50, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
@@ -97,9 +97,9 @@ export default function Login() {
             <div className={styles.blobLarge} />
             <div className={styles.blobSmall} />
           </div>
-          
+
           <div className={styles.brandContent}>
-            <motion.div 
+            <motion.div
               className={styles.logoWrapper}
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
@@ -107,8 +107,8 @@ export default function Login() {
             >
               <img src="logo.png" alt="Logo ADI" className={styles.logoImage} />
             </motion.div>
-            
-            <motion.div 
+
+            <motion.div
               className={styles.brandText}
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
@@ -117,38 +117,18 @@ export default function Login() {
               <h1 className={styles.brandTitle}>
                 Soporte <span>ADI</span>
               </h1>
-              <p className={styles.brandSubtitle}>Sistema de Incidencias</p>
-            </motion.div>
-            
-            <motion.div 
-              className={styles.brandFeatures}
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.4, duration: 0.4 }}
-            >
-              <div className={styles.featureItem}>
-                <span className={styles.featureIcon}>✓</span>
-                <span>Gestión eficiente</span>
-              </div>
-              <div className={styles.featureItem}>
-                <span className={styles.featureIcon}>✓</span>
-                <span>Seguimiento en tiempo real</span>
-              </div>
-              <div className={styles.featureItem}>
-                <span className={styles.featureIcon}>✓</span>
-                <span>Soporte 24/7</span>
-              </div>
+              <p className={styles.brandSubtitle}>Administrador de Incidencias</p>
             </motion.div>
           </div>
         </motion.div>
 
-        <motion.div 
+        <motion.div
           className={styles.formSection}
           initial={{ x: 50, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
         >
-          <motion.div 
+          <motion.div
             className={styles.formWrapper}
             initial={{ y: 30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -221,8 +201,8 @@ export default function Login() {
               </div>
 
               <div className={styles.formOptions}>
-                <a 
-                  href="/forgot-password" 
+                <a
+                  href="/forgot-password"
                   onClick={handleForgotPassword}
                   className={styles.forgotPassword}
                 >
@@ -231,7 +211,7 @@ export default function Login() {
               </div>
 
               {error && (
-                <motion.div 
+                <motion.div
                   className={styles.errorAlert}
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}

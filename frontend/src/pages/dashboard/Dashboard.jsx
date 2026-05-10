@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../../context/AuthContext'
 import { useLocation, useNavigate } from 'react-router-dom'
 import {
   MdAdd,
@@ -17,8 +17,8 @@ import {
   MdSpeed,
   MdPeople,
 } from 'react-icons/md'
-import Sidebar from '../components/Sidebar/Sidebar'
-import TopBar from '../components/TopBar/TopBar'
+import Sidebar from '../../components/Sidebar/Sidebar'
+import TopBar from '../../components/TopBar/TopBar'
 import styles from './Dashboard.module.css'
 
 const KPI_DATA = [
