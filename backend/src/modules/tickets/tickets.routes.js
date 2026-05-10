@@ -7,6 +7,7 @@ import {
   getTickets,
   getTicket
 } from "./tickets.controller.js";
+import { authenticate } from "../../middlewares/auth.middleware.js";
 
 const router = Router();
 
@@ -18,5 +19,8 @@ router.get("/user/:adi_user_id", getUserTickets);
 
 // GET /api/tickets/user/:adi_user_id/:ticket_id
 router.get("/user/:adi_user_id/:ticket_id", getUserTicketDetail);
+
+router.get("/", authenticate, getTickets);
+router.get("/:id", authenticate, getTicket);
 
 export default router;

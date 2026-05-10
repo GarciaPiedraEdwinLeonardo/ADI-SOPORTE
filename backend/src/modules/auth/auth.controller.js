@@ -4,6 +4,7 @@ import { body, validationResult } from "express-validator";
 import {
   findUserByEmail,
   createUser,
+  deleteUserById,
   updateLastLogin,
   updatePassword,
   updateUserData,
@@ -509,3 +510,30 @@ export const validateResetToken = async (req, res, next) => {
     next(err);
   }
 };
+
+// --- ELIMINAR TÉCNICO (solo admin) ---
+export const deleteUser = async (req, res, next) => {
+  try {
+    const { id } = req.params
+
+    if (isNaN(id)) {
+      return res.status(400).json({ ok: false, error: "id debe ser un número" })
+    }
+
+    // No permitir que el admin se elimine a sí mismo
+    if (Number(id) === req.user.id) {
+      return res.status(400).json({ ok: false, error: "No puedes eliminarte a ti mismo" })
+    }
+
+    const user = await findUserById(id)
+    if (!user) {
+      return res.status(404).json({ ok: false, error: "Usuario no encontrado" })
+    }
+
+    await deleteUserById(id)
+
+    res.json({ ok: true, message: `Usuario ${user.name} ${user.apat} eliminado correctamente` })
+  } catch (err) {
+    next(err)
+  }
+}

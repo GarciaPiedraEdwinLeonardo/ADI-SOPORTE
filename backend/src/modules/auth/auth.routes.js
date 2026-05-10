@@ -16,6 +16,7 @@ import {
   resetPassword,
   resetPasswordValidation,
   validateResetToken,
+  deleteUser
 } from "./auth.controller.js";
 import { authenticate, isAdmin } from "../../middlewares/auth.middleware.js";
 
@@ -52,6 +53,9 @@ router.put(
   updateUserValidation,
   updateUser,
 );
+
+// DELETE /api/auth/users/:id — solo admin
+router.delete('/users/:id', authenticate, isAdmin, deleteUser);
 
 // POST /api/auth/forgot-password — cualquier usuario
 router.post("/forgot-password", forgotPasswordValidation, forgotPassword);

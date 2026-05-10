@@ -51,6 +51,15 @@ export const createUser = async ({
   return data;
 };
 
+export const deleteUserById = async (id) => {
+  const { error } = await supabase
+    .from("support_users")
+    .delete()
+    .eq("id", Number(id))
+
+  if (error) throw error
+}
+
 export const updateLastLogin = async (id) => {
   const { error } = await supabase
     .from("support_users")
