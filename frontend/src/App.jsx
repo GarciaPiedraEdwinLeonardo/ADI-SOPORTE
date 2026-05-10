@@ -7,6 +7,7 @@ import Dashboard from './pages/dashboard/Dashboard'
 import ForgotPassword from './pages/auth/ForgotPassword'
 import ResetPassword from './pages/auth/ResetPassword'
 import Tecnicos from './pages/tecnicos/Tecnicos'
+import Faqs from './pages/faqs/Faqs'
 
 export default function App() {
   return (
@@ -34,6 +35,15 @@ export default function App() {
             element={
               <ProtectedRoute requiredRole={1}>
                 <Tecnicos />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/faqs"
+            element={
+              <ProtectedRoute requiredRole={1}>
+                <Faqs />
               </ProtectedRoute>
             }
           />
