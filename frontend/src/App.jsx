@@ -1,7 +1,7 @@
 // src/App.jsx
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
-import { ProtectedRoute } from './components'
+import { ProtectedRoute, PublicRoute } from './components'
 import Login from './pages/auth/Login'
 import Dashboard from './pages/dashboard/Dashboard'
 import ForgotPassword from './pages/auth/ForgotPassword'
@@ -15,9 +15,9 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           {/* Public */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+          <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
+          <Route path="/reset-password" element={<PublicRoute><ResetPassword /></PublicRoute>} />
 
           {/* Protected — cualquier usuario autenticado */}
           <Route

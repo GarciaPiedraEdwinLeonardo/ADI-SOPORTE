@@ -6,8 +6,10 @@ import {
   MdPerson,
   MdLogout,
   MdKeyboardArrowDown,
-  MdSettings,
+  MdLock,
 } from 'react-icons/md'
+import ChangePasswordModal from './ChangePasswordModal'
+import Toast from '../ui/Toast'
 import styles from './TopBar.module.css'
 
 const ROLE_LABELS = { 1: 'Administrador', 2: 'Técnico', 3: 'Operador' }
@@ -16,6 +18,8 @@ export default function TopBar() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const [dropdownOpen, setDropdownOpen] = useState(false)
+  const [showModal, setShowModal] = useState(false)
+  const [toast, setToast] = useState(null)
   const dropdownRef = useRef(null)
 
   // Cerrar dropdown al hacer clic fuera
@@ -34,14 +38,14 @@ export default function TopBar() {
     navigate('/login')
   }
 
-  const handleProfile = () => {
+  const handleChangePassword = () => {
     setDropdownOpen(false)
-    navigate('/perfil')
+    setShowModal(true)
   }
 
-  const handleSettings = () => {
-    setDropdownOpen(false)
-    navigate('/configuracion')
+  const handlePasswordChanged = () => {
+    setToast({ msg: 'Contraseña actualizada con éxito', type: 'success' })
+    setTimeout(() => setToast(null), 3000)
   }
 
   return (
@@ -102,14 +106,9 @@ export default function TopBar() {
             <div className={styles.dropdownDivider} />
 
             {/* Opciones */}
-            <button className={styles.dropdownItem} onClick={handleProfile}>
-              <MdPerson className={styles.dropdownItemIcon} />
-              Ver perfil
-            </button>
-
-            <button className={styles.dropdownItem} onClick={handleSettings}>
-              <MdSettings className={styles.dropdownItemIcon} />
-              Configuración
+            <button className={styles.dropdownItem} onClick={handleChangePassword}>
+              <MdLock className={styles.dropdownItemIcon} />
+              Cambiar contraseña
             </button>
 
             <div className={styles.dropdownDivider} />
@@ -124,6 +123,17 @@ export default function TopBar() {
           </div>
         )}
       </div>
+
+      {showModal && (
+        <ChangePasswordModal 
+          onClose={() => setShowModal(false)} 
+          onSaved={handlePasswordChanged} 
+        />
+      )}
+
+      {toast && (
+        <Toast msg={toast.msg} type={toast.type} />
+      )}
     </header>
   )
 }
