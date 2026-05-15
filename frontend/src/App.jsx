@@ -10,6 +10,9 @@ import Tecnicos from './pages/tecnicos/Tecnicos'
 import Faqs from './pages/faqs/Faqs'
 import TicketsAdmin from './pages/tickets/admin/TicketsAdmin'
 import TicketDetailAdmin from './pages/tickets/admin/TicketDetailAdmin'
+import TicketsTecnico from './pages/tickets/tecnico/TicketsTecnico'
+import TicketDetailTecnico from './pages/tickets/tecnico/TicketDetailTecnico'
+import Auditoria from './pages/auditoria/Auditoria'
 
 export default function App() {
   return (
@@ -50,6 +53,15 @@ export default function App() {
             }
           />
 
+          <Route
+            path="/auditoria"
+            element={
+              <ProtectedRoute requiredRole={1}>
+                <Auditoria />
+              </ProtectedRoute>
+            }
+          />
+
           {/* Tickets — solo admin */}
           <Route
             path="/tickets/admin"
@@ -64,6 +76,24 @@ export default function App() {
             element={
               <ProtectedRoute requiredRole={1}>
                 <TicketDetailAdmin />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Tickets — solo técnico (role = 2) */}
+          <Route
+            path="/tickets/tecnico"
+            element={
+              <ProtectedRoute requiredRole={2}>
+                <TicketsTecnico />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/tickets/tecnico/:id"
+            element={
+              <ProtectedRoute requiredRole={2}>
+                <TicketDetailTecnico />
               </ProtectedRoute>
             }
           />

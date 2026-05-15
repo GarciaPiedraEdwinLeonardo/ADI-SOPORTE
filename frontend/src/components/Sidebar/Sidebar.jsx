@@ -12,6 +12,7 @@ import {
   MdMenu,
   MdClose,
   MdLogout,
+  MdHistory,
 } from 'react-icons/md'
 import styles from './Sidebar.module.css'
 
@@ -20,6 +21,7 @@ const NAV_ITEMS = [
   { label: 'Técnicos', icon: MdPeople, path: '/tecnicos', adminOnly: true },
   { label: 'Tickets', icon: MdConfirmationNumber, path: '/tickets/admin', adminOnly: true },
   { label: 'Tickets', icon: MdConfirmationNumber, path: '/tickets/tecnico', techOnly: true },
+  { label: 'Auditoría', icon: MdHistory, path: '/auditoria', adminOnly: true },
   { label: 'FAQs', icon: MdQuestionAnswer, path: '/faqs', adminOnly: true },
 ]
 
