@@ -31,11 +31,11 @@ export default function Sidebar({ activePath = '/dashboard' }) {
   const [isMobile, setIsMobile] = useState(false)
 
   const isAdmin = user?.role === 1
-  const isTech  = user?.role === 2
+  const isTech = user?.role === 2
 
   const visibleItems = NAV_ITEMS.filter((item) => {
     if (item.adminOnly) return isAdmin
-    if (item.techOnly)  return isTech
+    if (item.techOnly) return isTech
     return true
   })
 
@@ -48,7 +48,7 @@ export default function Sidebar({ activePath = '/dashboard' }) {
         setMobileOpen(false)
       }
     }
-    
+
     checkMobile()
     window.addEventListener('resize', checkMobile)
     return () => window.removeEventListener('resize', checkMobile)
@@ -78,15 +78,15 @@ export default function Sidebar({ activePath = '/dashboard' }) {
     <>
       {/* Overlay para móvil */}
       {isMobile && mobileOpen && (
-        <div 
-          className={styles.overlay} 
+        <div
+          className={styles.overlay}
           onClick={() => setMobileOpen(false)}
         />
       )}
 
       {/* Botón hamburguesa (solo móvil) */}
       {isMobile && (
-        <button 
+        <button
           className={styles.hamburger}
           onClick={toggleMobile}
           aria-label="Abrir menú"
@@ -96,7 +96,7 @@ export default function Sidebar({ activePath = '/dashboard' }) {
       )}
 
       {/* Sidebar */}
-      <aside 
+      <aside
         className={`
           ${styles.sidebar} 
           ${open ? styles.open : styles.closed}
@@ -109,11 +109,11 @@ export default function Sidebar({ activePath = '/dashboard' }) {
           <div className={styles.logoArea}>
             {/* ESPACIO CIRCULAR PARA EL LOGO */}
             <div className={styles.logoCircle}>
-                <img src="logo.png" alt="Logo ADI" className={styles.logoImg} />
+              <img src="/logo.png" alt="Logo ADI" className={styles.logoImg} />
             </div>
             {open && <span className={styles.logoText}>ADI</span>}
           </div>
-          
+
           {/* Botón toggle solo en desktop */}
           {!isMobile && (
             <button
@@ -129,7 +129,9 @@ export default function Sidebar({ activePath = '/dashboard' }) {
         {/* Navegación */}
         <nav className={styles.nav}>
           {visibleItems.map((item) => {
-            const isActive = activePath === item.path
+            const isActive = item.path === '/dashboard'
+              ? activePath === item.path
+              : activePath.startsWith(item.path)
             const Icon = item.icon
             return (
               <button
