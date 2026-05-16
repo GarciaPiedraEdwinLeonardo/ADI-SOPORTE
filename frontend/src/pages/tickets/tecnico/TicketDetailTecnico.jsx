@@ -31,6 +31,7 @@ const STATUS_STYLE = {
     2: { label: 'Asignado', color: '#0369A1', bg: '#E0F2FE', dot: '#0284C7' },
     3: { label: 'Resuelto', color: '#15803D', bg: '#DCFCE7', dot: '#16A34A' },
     4: { label: 'En Revisión', color: '#6D28D9', bg: '#EDE9FE', dot: '#8B5CF6' },
+    5: { label: 'Desestimado', color: '#B91C1C', bg: '#FEE2E2', dot: '#EF4444' },
 }
 
 const PRIORITY_STYLE = {
@@ -47,6 +48,7 @@ const HISTORY_LABELS = {
     resolution_note: 'Nota de resolución',
     reopen_reason: 'Motivo de reapertura',
     reopened_count: 'Número de reaperturas',
+    dismiss_reason: 'Motivo de desestimación',
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -395,6 +397,8 @@ function HistorySection({ ticketId }) {
                 return `Motivo de reapertura: ${entry.new_value}`
             case 'reopened_count':
                 return `Ticket reabierto (vez #${entry.new_value})`
+            case 'dismiss_reason':
+                return `Motivo de desestimación: ${entry.new_value}`
             default:
                 return `${HISTORY_LABELS[entry.field_changed] ?? entry.field_changed}: ${entry.new_value ?? '—'}`
         }

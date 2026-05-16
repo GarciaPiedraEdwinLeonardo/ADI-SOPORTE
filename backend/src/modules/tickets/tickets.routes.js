@@ -17,8 +17,11 @@ import {
   postComment,
   commentValidation,
   getHistory,
+  patchDismissTicket,
+  dismissTicketValidation,
 } from "./tickets.controller.js";
 import { authenticate, isAdmin } from "../../middlewares/auth.middleware.js";
+
 
 const router = Router();
 
@@ -54,6 +57,11 @@ router.patch("/:id/review", authenticate, isAdmin, patchMarkInReview);
 
 // PATCH  /api/tickets/:id/reopen             Reabrir y reasignar (admin)
 router.patch("/:id/reopen", authenticate, isAdmin, reopenTicketValidation, patchReopenTicket);
+
+// ─── DESESTIMAR ─────────────────────────────────────────────────────────────
+
+// PATCH  /api/tickets/:id/dismiss            Admin desestima el ticket
+router.patch("/:id/dismiss", authenticate, isAdmin, dismissTicketValidation, patchDismissTicket);
 
 // ─── COMENTARIOS ──────────────────────────────────────────────────────────────
 

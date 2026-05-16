@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { useLocation, useNavigate } from 'react-router-dom'
 import {
@@ -20,109 +20,22 @@ import {
 import Sidebar from '../../components/Sidebar/Sidebar'
 import TopBar from '../../components/TopBar/TopBar'
 import styles from './Dashboard.module.css'
-
-const KPI_DATA = [
-  {
-    label: 'Tickets abiertos',
-    value: '24',
-    sub: '+3 hoy',
-    trend: 'up',
-    color: '#84CC16',
-    bg: '#ECFCCB',
-    icon: MdConfirmationNumber,
-    barWidth: '48%',
-  },
-  {
-    label: 'En proceso',
-    value: '11',
-    sub: '5 con alerta',
-    trend: 'up',
-    color: '#F59E0B',
-    bg: '#FEF3C7',
-    icon: MdPending,
-    barWidth: '22%',
-  },
-  {
-    label: 'Resueltos (mes)',
-    value: '138',
-    sub: '98% SLA',
-    trend: 'up',
-    color: '#16A34A',
-    bg: '#DCFCE7',
-    icon: MdCheckCircle,
-    barWidth: '90%',
-  },
-  {
-    label: 'Críticos abiertos',
-    value: '2',
-    sub: 'Atención req.',
-    trend: 'down',
-    color: '#DC2626',
-    bg: '#FEE2E2',
-    icon: MdWarning,
-    barWidth: '4%',
-  },
-]
-
-const RECENT_TICKETS = [
-  {
-    id: '#TK-041',
-    area: 'Redes',
-    tipo: 'Sin conexión',
-    estado: 'Pendiente',
-    estadoColor: '#F59E0B',
-    estadoBg: '#FEF3C7',
-    tiempo: 'Hace 10 min',
-  },
-  {
-    id: '#TK-040',
-    area: 'Cómputo',
-    tipo: 'Equipo lento',
-    estado: 'En proceso',
-    estadoColor: '#0284C7',
-    estadoBg: '#E0F2FE',
-    tiempo: 'Hace 25 min',
-  },
-  {
-    id: '#TK-039',
-    area: 'Impresión',
-    tipo: 'Sin tóner',
-    estado: 'Resuelto',
-    estadoColor: '#16A34A',
-    estadoBg: '#DCFCE7',
-    tiempo: 'Hace 1 hora',
-  },
-  {
-    id: '#TK-038',
-    area: 'Software',
-    tipo: 'Error login',
-    estado: 'Pendiente',
-    estadoColor: '#F59E0B',
-    estadoBg: '#FEF3C7',
-    tiempo: 'Hace 2 horas',
-  },
-  {
-    id: '#TK-037',
-    area: 'Hardware',
-    tipo: 'Pantalla rota',
-    estado: 'Resuelto',
-    estadoColor: '#16A34A',
-    estadoBg: '#DCFCE7',
-    tiempo: 'Hace 3 horas',
-  },
-]
-
-const QUICK_STATS = [
-  { label: 'Tiempo promedio', value: '2.5h', icon: MdSpeed, color: '#84CC16', bg: '#ECFCCB' },
-  { label: 'Técnicos activos', value: '8', icon: MdPeople, color: '#3B82F6', bg: '#DBEAFE' },
-  { label: 'SLA cumplido', value: '98%', icon: MdCheckCircle, color: '#16A34A', bg: '#DCFCE7' },
-]
+import { ticketsService } from '../../services/ticketsService'
 
 export default function Dashboard() {
   const { user } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
   const [selectedPeriod, setSelectedPeriod] = useState('hoy')
+  const [tickets, setTickets] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    ticketsService.getAll()
+      .then(res => setTickets(res.data ?? []))
+      .catch(err => console.error(err))
+      .finally(() => setLoading(false))
+  }, [])
 
   const today = new Date().toLocaleDateString('es-MX', {
     weekday: 'long',
@@ -136,6 +49,125 @@ export default function Dashboard() {
     if (hour < 12) return 'Buenos días'
     if (hour < 18) return 'Buenas tardes'
     return 'Buenas noches'
+  }
+
+  const now = new Date()
+  const filteredTickets = tickets.filter(t => {
+    if (selectedPeriod === 'hoy') {
+      return new Date(t.created_at).toDateString() === now.toDateString()
+    } else if (selectedPeriod === 'semana') {
+      const diffTime = Math.abs(now - new Date(t.created_at))
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+      return diffDays <= 7
+    } else if (selectedPeriod === 'mes') {
+      const diffTime = Math.abs(now - new Date(t.created_at))
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+      return diffDays <= 30
+    }
+    return true
+  })
+
+  const abiertos = filteredTickets.filter(t => [1, 2, 4].includes(t.status?.id))
+  const enProceso = filteredTickets.filter(t => t.status?.id === 2 || t.status?.id === 4)
+  const resueltos = filteredTickets.filter(t => t.status?.id === 3)
+  const criticos = filteredTickets.filter(t => t.priority?.id === 4 && [1, 2, 4].includes(t.status?.id))
+
+  const KPI_DATA = [
+    {
+      label: 'Tickets abiertos',
+      value: abiertos.length,
+      sub: '',
+      trend: 'up',
+      color: '#84CC16',
+      bg: '#ECFCCB',
+      icon: MdConfirmationNumber,
+      barWidth: '48%',
+    },
+    {
+      label: 'En proceso',
+      value: enProceso.length,
+      sub: '',
+      trend: 'up',
+      color: '#F59E0B',
+      bg: '#FEF3C7',
+      icon: MdPending,
+      barWidth: '22%',
+    },
+    {
+      label: 'Resueltos',
+      value: resueltos.length,
+      sub: '',
+      trend: 'up',
+      color: '#16A34A',
+      bg: '#DCFCE7',
+      icon: MdCheckCircle,
+      barWidth: '90%',
+    },
+    {
+      label: 'Críticos abiertos',
+      value: criticos.length,
+      sub: '',
+      trend: 'down',
+      color: '#DC2626',
+      bg: '#FEE2E2',
+      icon: MdWarning,
+      barWidth: '4%',
+    },
+  ]
+
+  // ── Cálculos para QUICK_STATS reales ──
+  const resolvedTickets = filteredTickets.filter(t => t.status?.id === 3)
+  const metSla = resolvedTickets.filter(t => t.sla_deadline && new Date(t.updated_at) <= new Date(t.sla_deadline))
+  const slaPercentage = resolvedTickets.length > 0 ? Math.round((metSla.length / resolvedTickets.length) * 100) : 100
+  
+  let avgHours = 0
+  if (resolvedTickets.length > 0) {
+    const totalMs = resolvedTickets.reduce((sum, t) => sum + (new Date(t.updated_at) - new Date(t.created_at)), 0)
+    avgHours = (totalMs / resolvedTickets.length / (1000 * 60 * 60)).toFixed(1)
+  }
+
+  const activeTechsCount = new Set(filteredTickets.filter(t => t.assigned_to).map(t => t.assigned_to)).size
+
+  const REAL_QUICK_STATS = [
+    { label: 'Tiempo promedio', value: loading ? '...' : `${avgHours}h`, icon: MdSpeed, color: '#84CC16', bg: '#ECFCCB' },
+    { label: 'Técnicos con tickets', value: loading ? '...' : activeTechsCount, icon: MdPeople, color: '#3B82F6', bg: '#DBEAFE' },
+    { label: 'SLA cumplido', value: loading ? '...' : `${slaPercentage}%`, icon: MdCheckCircle, color: '#16A34A', bg: '#DCFCE7' },
+  ]
+
+  const RECENT_TICKETS = [...filteredTickets]
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+    .slice(0, 5)
+    .map(t => {
+      const isPendiente = t.status?.id === 1;
+      const isAsignado = t.status?.id === 2;
+      const isResuelto = t.status?.id === 3;
+      const isRevision = t.status?.id === 4;
+
+      return {
+        id: `#TK-${t.id.toString().padStart(3, '0')}`,
+        rawId: t.id,
+        area: t.areas?.name ?? 'General',
+        tipo: t.error_types?.name ?? 'Otros',
+        estado: t.status?.name ?? 'Desconocido',
+        estadoColor: isPendiente ? '#B45309' : isAsignado ? '#0369A1' : isResuelto ? '#15803D' : isRevision ? '#6D28D9' : '#B91C1C',
+        estadoBg: isPendiente ? '#FEF3C7' : isAsignado ? '#E0F2FE' : isResuelto ? '#DCFCE7' : isRevision ? '#EDE9FE' : '#FEE2E2',
+        tiempo: new Date(t.created_at).toLocaleDateString(),
+      }
+    })
+
+  const proximosVencer = filteredTickets
+    .filter(t => t.status?.id === 2 && t.sla_deadline)
+    .sort((a, b) => new Date(a.sla_deadline) - new Date(b.sla_deadline))
+    .slice(0, 2)
+
+  const sinAsignar = filteredTickets
+    .filter(t => t.status?.id === 1)
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+    .slice(0, 2)
+
+  const handleTicketClick = (id) => {
+    if (user?.role === 1) navigate(`/tickets/admin/${id}`)
+    else navigate(`/tickets/tecnico/${id}`)
   }
 
   return (
@@ -172,17 +204,12 @@ export default function Dashboard() {
                   </button>
                 ))}
               </div>
-              
-              <button className={styles.btnPrimary} onClick={() => navigate('/tickets/nuevo')}>
-                <MdAdd size={18} />
-                Nuevo ticket
-              </button>
             </div>
           </header>
 
           {/* Quick Stats */}
           <section className={styles.quickStats}>
-            {QUICK_STATS.map((stat) => {
+            {REAL_QUICK_STATS.map((stat) => {
               const Icon = stat.icon
               return (
                 <div key={stat.label} className={styles.quickStatCard}>
@@ -219,7 +246,7 @@ export default function Dashboard() {
                   
                   <div className={styles.kpiBody}>
                     <span className={styles.kpiValue} style={{ color: k.color }}>
-                      {k.value}
+                      {loading ? '...' : k.value}
                     </span>
                     <span className={styles.kpiLabel}>{k.label}</span>
                   </div>
@@ -250,13 +277,13 @@ export default function Dashboard() {
                   <h3 className={styles.sectionTitle}>Actividad reciente</h3>
                 </div>
                 <div className={styles.sectionActions}>
-                  <button className={styles.btnIcon} title="Filtrar">
-                    <MdFilterList size={18} />
-                  </button>
-                  <button className={styles.btnIcon} title="Actualizar">
+                  <button className={styles.btnIcon} title="Actualizar" onClick={() => {
+                    setLoading(true)
+                    ticketsService.getAll().then(res => setTickets(res.data ?? [])).finally(() => setLoading(false))
+                  }}>
                     <MdRefresh size={18} />
                   </button>
-                  <button className={styles.btnGhost} onClick={() => navigate('/tickets')}>
+                  <button className={styles.btnGhost} onClick={() => navigate(user?.role === 1 ? '/tickets/admin' : '/tickets/tecnico')}>
                     Ver todos
                     <MdArrowForward size={16} />
                   </button>
@@ -264,30 +291,36 @@ export default function Dashboard() {
               </div>
 
               <div className={styles.activityList}>
-                {RECENT_TICKETS.map((t) => (
-                  <div key={t.id} className={styles.activityRow}>
-                    <div className={styles.ticketMain}>
-                      <span className={styles.ticketId}>{t.id}</span>
-                      <div className={styles.ticketInfo}>
-                        <span className={styles.ticketArea}>{t.area}</span>
-                        <span className={styles.ticketDot}>·</span>
-                        <span className={styles.ticketTipo}>{t.tipo}</span>
+                {loading ? (
+                  <div style={{ padding: '2rem', textAlign: 'center', color: '#64748b' }}>Cargando actividad...</div>
+                ) : RECENT_TICKETS.length === 0 ? (
+                  <div style={{ padding: '2rem', textAlign: 'center', color: '#64748b' }}>No hay tickets recientes</div>
+                ) : (
+                  RECENT_TICKETS.map((t) => (
+                    <div key={t.rawId} className={styles.activityRow} onClick={() => handleTicketClick(t.rawId)} style={{ cursor: 'pointer' }}>
+                      <div className={styles.ticketMain}>
+                        <span className={styles.ticketId}>{t.id}</span>
+                        <div className={styles.ticketInfo}>
+                          <span className={styles.ticketArea}>{t.area}</span>
+                          <span className={styles.ticketDot}>·</span>
+                          <span className={styles.ticketTipo}>{t.tipo}</span>
+                        </div>
                       </div>
+                      <div className={styles.ticketMeta}>
+                        <span
+                          className={styles.estadoBadge}
+                          style={{ color: t.estadoColor, background: t.estadoBg }}
+                        >
+                          {t.estado}
+                        </span>
+                        <span className={styles.ticketTime}>{t.tiempo}</span>
+                      </div>
+                      <button className={styles.btnMore}>
+                        <MdArrowForward size={16} />
+                      </button>
                     </div>
-                    <div className={styles.ticketMeta}>
-                      <span
-                        className={styles.estadoBadge}
-                        style={{ color: t.estadoColor, background: t.estadoBg }}
-                      >
-                        {t.estado}
-                      </span>
-                      <span className={styles.ticketTime}>{t.tiempo}</span>
-                    </div>
-                    <button className={styles.btnMore}>
-                      <MdMoreVert size={16} />
-                    </button>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </section>
 
@@ -297,47 +330,66 @@ export default function Dashboard() {
               <div className={styles.panelCard}>
                 <h4 className={styles.panelTitle}>⚠️ Próximos a vencer SLA</h4>
                 <div className={styles.panelList}>
-                  <div className={styles.panelItem}>
-                    <div className={styles.panelItemLeft}>
-                      <span className={styles.panelItemId}>#TK-041</span>
-                      <span className={styles.panelItemDesc}>Sin conexión - Redes</span>
-                    </div>
-                    <span className={styles.panelItemBadge} style={{ background: '#FEE2E2', color: '#DC2626' }}>
-                      30 min
-                    </span>
-                  </div>
-                  <div className={styles.panelItem}>
-                    <div className={styles.panelItemLeft}>
-                      <span className={styles.panelItemId}>#TK-042</span>
-                      <span className={styles.panelItemDesc}>Impresora atascada</span>
-                    </div>
-                    <span className={styles.panelItemBadge} style={{ background: '#FEF3C7', color: '#F59E0B' }}>
-                      1.5h
-                    </span>
-                  </div>
+                  {loading ? (
+                    <div className={styles.panelItem} style={{ justifyContent: 'center', color: '#64748b' }}>Cargando...</div>
+                  ) : proximosVencer.length === 0 ? (
+                    <div className={styles.panelItem} style={{ justifyContent: 'center', color: '#16A34A' }}>¡Todo en orden!</div>
+                  ) : (
+                    proximosVencer.map(t => {
+                      const diffMs = new Date(t.sla_deadline) - new Date()
+                      const totalMin = Math.floor(diffMs / 60000)
+                      let timeStr = ''
+                      let badgeStyle = { background: '#FEF3C7', color: '#F59E0B' }
+                      
+                      if (totalMin <= 0) {
+                        timeStr = 'Vencido'
+                        badgeStyle = { background: '#FEE2E2', color: '#DC2626' }
+                      } else {
+                        const h = Math.floor(totalMin / 60)
+                        const m = totalMin % 60
+                        timeStr = h > 0 ? `${h}h ${m}m` : `${m}m`
+                        if (totalMin < 60) badgeStyle = { background: '#FEE2E2', color: '#DC2626' }
+                      }
+
+                      return (
+                        <div key={t.id} className={styles.panelItem} onClick={() => handleTicketClick(t.id)} style={{ cursor: 'pointer' }}>
+                          <div className={styles.panelItemLeft}>
+                            <span className={styles.panelItemId}>#TK-{t.id.toString().padStart(3, '0')}</span>
+                            <span className={styles.panelItemDesc}>{t.error_types?.name}</span>
+                          </div>
+                          <span className={styles.panelItemBadge} style={badgeStyle}>
+                            {timeStr}
+                          </span>
+                        </div>
+                      )
+                    })
+                  )}
                 </div>
               </div>
 
               {/* Tickets sin asignar */}
-              <div className={styles.panelCard}>
-                <h4 className={styles.panelTitle}>📋 Sin asignar</h4>
-                <div className={styles.panelList}>
-                  <div className={styles.panelItem}>
-                    <div className={styles.panelItemLeft}>
-                      <span className={styles.panelItemId}>#TK-045</span>
-                      <span className={styles.panelItemDesc}>Monitor parpadea</span>
-                    </div>
-                    <button className={styles.btnAssign}>Asignar</button>
-                  </div>
-                  <div className={styles.panelItem}>
-                    <div className={styles.panelItemLeft}>
-                      <span className={styles.panelItemId}>#TK-046</span>
-                      <span className={styles.panelItemDesc}>Software no inicia</span>
-                    </div>
-                    <button className={styles.btnAssign}>Asignar</button>
+              {user?.role === 1 && (
+                <div className={styles.panelCard}>
+                  <h4 className={styles.panelTitle}>📋 Sin asignar</h4>
+                  <div className={styles.panelList}>
+                    {loading ? (
+                      <div className={styles.panelItem} style={{ justifyContent: 'center', color: '#64748b' }}>Cargando...</div>
+                    ) : sinAsignar.length === 0 ? (
+                      <div className={styles.panelItem} style={{ justifyContent: 'center', color: '#64748b' }}>No hay tickets pendientes</div>
+                    ) : (
+                      sinAsignar.map(t => (
+                        <div key={t.id} className={styles.panelItem}>
+                          <div className={styles.panelItemLeft}>
+                            <span className={styles.panelItemId}>#TK-{t.id.toString().padStart(3, '0')}</span>
+                            <span className={styles.panelItemDesc}>{t.error_types?.name}</span>
+                          </div>
+                          <button className={styles.btnAssign} onClick={() => handleTicketClick(t.id)}>Ver</button>
+                        </div>
+                      ))
+                    )}
                   </div>
                 </div>
-              </div>
+              )}
             </aside>
           </div>
         </main>

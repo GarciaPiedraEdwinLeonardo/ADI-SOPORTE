@@ -19,6 +19,8 @@ import {
     MdAssignment,
     MdExpandMore,
     MdExpandLess,
+    MdCancel,
+    MdBlock,
 } from 'react-icons/md'
 import Sidebar from '../../../components/Sidebar/Sidebar'
 import TopBar from '../../../components/TopBar/TopBar'
@@ -32,6 +34,7 @@ const STATUS_STYLE = {
     2: { label: 'Asignado', color: '#0369A1', bg: '#E0F2FE', dot: '#0284C7' },
     3: { label: 'Resuelto', color: '#15803D', bg: '#DCFCE7', dot: '#16A34A' },
     4: { label: 'En Revisión', color: '#6D28D9', bg: '#EDE9FE', dot: '#8B5CF6' },
+    5: { label: 'Desestimado', color: '#B91C1C', bg: '#FEE2E2', dot: '#EF4444' },
 }
 
 const PRIORITY_STYLE = {
@@ -48,6 +51,7 @@ const HISTORY_LABELS = {
     resolution_note: 'Nota de resolución',
     reopen_reason: 'Motivo de reapertura',
     reopened_count: 'Número de reaperturas',
+    dismiss_reason: 'Motivo de desestimación',
 }
 
 function getSlaInfo(sla_deadline) {
@@ -94,6 +98,11 @@ function AssignSection({ ticket, onSuccess }) {
     const [form, setForm] = useState({ priority_id: '2', assigned_to: '' })
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState(null)
+    
+    // Estados para desestimar
+    const [dismissOpen, setDismissOpen] = useState(false)
+    const [dismissReason, setDismissReason] = useState('')
+    const [loadingDismiss, setLoadingDismiss] = useState(false)
 
     useEffect(() => {
         ticketsService.getTechnicians()
@@ -115,6 +124,19 @@ function AssignSection({ ticket, onSuccess }) {
             setError(err.message)
         } finally {
             setLoading(false)
+        }
+    }
+
+    const handleDismiss = async () => {
+        if (!dismissReason.trim()) { setError('El motivo para desestimar es requerido'); return }
+        setLoadingDismiss(true); setError(null)
+        try {
+            await ticketsService.dismiss(ticket.id, { dismiss_reason: dismissReason.trim() })
+            onSuccess()
+        } catch (err) {
+            setError(err.message)
+        } finally {
+            setLoadingDismiss(false)
         }
     }
 
@@ -158,9 +180,40 @@ function AssignSection({ ticket, onSuccess }) {
                 </div>
             </div>
 
-            <button className={styles.btnPrimary} onClick={handleSubmit} disabled={loading || loadingTechs}>
-                {loading ? <span className={styles.spinner} /> : 'Asignar ticket'}
-            </button>
+            <div className={styles.reviewActions} style={{ marginTop: '1rem', display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                <button className={styles.btnPrimary} onClick={handleSubmit} disabled={loading || loadingTechs || loadingDismiss} style={{ flex: 1 }}>
+                    {loading ? <span className={styles.spinner} /> : 'Asignar ticket'}
+                </button>
+
+                <button 
+                    className={styles.btnReopenToggle}
+                    style={{ flexShrink: 0, padding: '0.65rem 1rem', background: '#FEE2E2', color: '#DC2626', borderColor: '#FCA5A5' }}
+                    onClick={() => setDismissOpen(o => !o)}
+                >
+                    {dismissOpen ? <MdExpandLess size={16} /> : <MdBlock size={16} />}
+                    Desestimar
+                </button>
+            </div>
+
+            {dismissOpen && (
+                <div className={styles.reopenPanel} style={{ background: '#FEF2F2', borderColor: '#FECACA' }}>
+                    <label className={styles.label} style={{ color: '#991B1B' }}>Motivo de desestimación <span className={styles.required}>*</span></label>
+                    <textarea
+                        className={styles.textarea}
+                        placeholder="Describe por qué se desestima este ticket..."
+                        maxLength={200}
+                        rows={3}
+                        value={dismissReason}
+                        onChange={e => setDismissReason(e.target.value)}
+                        style={{ borderColor: '#FCA5A5' }}
+                    />
+                    <div className={styles.charCounter} style={{ color: '#DC2626' }}>{dismissReason.length}/200</div>
+                    <button className={styles.btnReopen} style={{ background: '#DC2626', borderColor: '#DC2626', color: '#fff' }} onClick={handleDismiss}
+                        disabled={loadingDismiss || loading || !dismissReason.trim()}>
+                        {loadingDismiss ? <span className={styles.spinner} /> : <><MdCancel size={16} /> Confirmar desestimación</>}
+                    </button>
+                </div>
+            )}
         </div>
     )
 }
@@ -289,6 +342,24 @@ function ResolvedSection({ ticket }) {
             {ticket.resolution_note && (
                 <div className={styles.resolutionNote}>
                     <span className={styles.resolutionNoteLabel}>Nota de resolución</span>
+                    <p className={styles.resolutionNoteText}>{ticket.resolution_note}</p>
+                </div>
+            )}
+        </div>
+    )
+}
+
+// ── Sección: Desestimado (status 5) ───────────────────────────────────────────
+function DismissedSection({ ticket }) {
+    return (
+        <div className={`${styles.actionCard}`} style={{ borderColor: '#FECACA', background: '#FEF2F2' }}>
+            <div className={styles.actionCardHeader} style={{ color: '#B91C1C' }}>
+                <MdBlock size={18} />
+                <span>Ticket desestimado</span>
+            </div>
+            {ticket.resolution_note && (
+                <div className={styles.resolutionNote} style={{ background: '#fff', borderColor: '#FECACA' }}>
+                    <span className={styles.resolutionNoteLabel} style={{ color: '#B91C1C' }}>Motivo de desestimación</span>
                     <p className={styles.resolutionNoteText}>{ticket.resolution_note}</p>
                 </div>
             )}
@@ -446,6 +517,8 @@ function HistorySection({ ticketId }) {
                 return `Motivo de reapertura: ${entry.new_value}`
             case 'reopened_count':
                 return `Ticket reabierto (vez #${entry.new_value})`
+            case 'dismiss_reason':
+                return `Motivo de desestimación: ${entry.new_value}`
             default:
                 return `${HISTORY_LABELS[entry.field_changed] ?? entry.field_changed}: ${entry.new_value ?? '—'}`
         }
@@ -681,6 +754,9 @@ export default function TicketDetailAdmin() {
                                 )}
                                 {ticket.status?.id === 3 && (
                                     <ResolvedSection ticket={ticket} />
+                                )}
+                                {ticket.status?.id === 5 && (
+                                    <DismissedSection ticket={ticket} />
                                 )}
                             </div>
 

@@ -92,6 +92,18 @@ export const ticketsService = {
   },
 
   /**
+   * PATCH /api/tickets/:id/dismiss
+   * Admin desestima el ticket
+   * @param {number} id
+   * @param {{ dismiss_reason: string }} payload
+   */
+  dismiss: async (id, { dismiss_reason }) => {
+    const { data } = await api.patch(`/tickets/${id}/dismiss`, { dismiss_reason })
+    if (!data.ok) throw new Error(data.error || 'Error al desestimar el ticket')
+    return data // { ok, data: {} }
+  },
+
+  /**
    * GET /api/tickets/:id/comments
    * Admin + técnico asignado
    */

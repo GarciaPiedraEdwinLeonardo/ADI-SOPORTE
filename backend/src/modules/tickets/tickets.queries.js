@@ -356,3 +356,21 @@ export const getTechnicianById = async (id) => {
   if (error) throw error;
   return data; // null si no existe o no es técnico activo
 };
+
+// ─── DESESTIMAR (ADMIN) ───────────────────────────────────────────────────────
+
+export const dismissTicket = async (ticket_id, dismiss_reason) => {
+  const { data, error } = await supabase
+    .from("tickets")
+    .update({
+      status_id: 5, // Desestimado
+      resolution_note: dismiss_reason,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", Number(ticket_id))
+    .select(TICKET_SELECT)
+    .single();
+
+  if (error) throw error;
+  return data;
+};

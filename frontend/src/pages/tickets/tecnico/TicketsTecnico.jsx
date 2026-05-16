@@ -28,6 +28,7 @@ const STATUS_STYLE = {
     2: { label: 'Asignado',    color: '#0369A1', bg: '#E0F2FE', dot: '#0284C7' },
     3: { label: 'Resuelto',    color: '#15803D', bg: '#DCFCE7', dot: '#16A34A' },
     4: { label: 'En Revisión', color: '#6D28D9', bg: '#EDE9FE', dot: '#8B5CF6' },
+    5: { label: 'Desestimado', color: '#B91C1C', bg: '#FEE2E2', dot: '#EF4444' },
 }
 
 // ── Colores por prioridad ─────────────────────────────────────────────────────

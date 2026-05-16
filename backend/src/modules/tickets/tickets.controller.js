@@ -18,6 +18,7 @@ import {
   getPriorityById,
   getAvailableTechnicians,
   getTechnicianById,
+  dismissTicket,
 } from "./tickets.queries.js";
 
 // ─── STATUS IDs ───────────────────────────────────────────────────────────────
@@ -26,6 +27,7 @@ const STATUS = {
   ASIGNADO:    2,
   RESUELTO:    3,
   EN_REVISION: 4,
+  DESESTIMADO: 5,
 };
 
 const STATUS_NAMES = {
@@ -33,6 +35,7 @@ const STATUS_NAMES = {
   2: "Asignado",
   3: "Resuelto",
   4: "En Revisión",
+  5: "Desestimado",
 };
 
 const PRIORITY_NAMES = {
@@ -630,6 +633,72 @@ export const getHistory = async (req, res, next) => {
 
     const data = await getHistoryByTicket(ticket_id);
     res.json({ ok: true, total: data.length, data });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ─── DESESTIMAR TICKET (solo admin) ──────────────────────────────────────────
+
+export const dismissTicketValidation = [
+  body("dismiss_reason")
+    .trim()
+    .notEmpty().withMessage("El motivo de desestimación es requerido")
+    .isLength({ max: 200 }).withMessage("El motivo no puede superar 200 caracteres"),
+];
+
+/**
+ * PATCH /api/tickets/:id/dismiss
+ * Admin desestima un ticket, indicando el motivo.
+ * Solo se puede desestimar desde estado Pendiente (1).
+ * El motivo queda guardado en resolution_note y en el historial.
+ */
+export const patchDismissTicket = async (req, res, next) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ ok: false, errors: errors.array() });
+    }
+
+    const { id: ticket_id } = req.params;
+    const { dismiss_reason } = req.body;
+    const admin_id = req.user.id;
+
+    if (isNaN(ticket_id)) {
+      return res.status(400).json({ ok: false, error: "id debe ser un número" });
+    }
+
+    const ticket = await getTicketById(ticket_id);
+    if (!ticket) {
+      return res.status(404).json({ ok: false, error: "Ticket no encontrado" });
+    }
+
+    if (ticket.status.id !== STATUS.PENDIENTE) {
+      return res.status(400).json({
+        ok: false,
+        error: `Solo se pueden desestimar tickets Pendientes. Estado actual: "${ticket.status.name}"`,
+      });
+    }
+
+    const updated = await dismissTicket(ticket_id, dismiss_reason);
+
+    await logHistory({
+      ticket_id,
+      changed_by: admin_id,
+      field_changed: "status_id",
+      old_value: STATUS_NAMES[STATUS.PENDIENTE],
+      new_value: STATUS_NAMES[STATUS.DESESTIMADO],
+    });
+
+    await logHistory({
+      ticket_id,
+      changed_by: admin_id,
+      field_changed: "dismiss_reason",
+      old_value: null,
+      new_value: dismiss_reason,
+    });
+
+    res.json({ ok: true, data: updated });
   } catch (err) {
     next(err);
   }
