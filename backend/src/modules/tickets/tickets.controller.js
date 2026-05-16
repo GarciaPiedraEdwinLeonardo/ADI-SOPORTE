@@ -164,6 +164,29 @@ export const getUserTickets = async (req, res, next) => {
 };
 
 /**
+ * GET /api/tickets/user/:adi_user_id/:id
+ * Pública — detalle de ticket para un usuario ADI.
+ */
+export const getUserTicket = async (req, res, next) => {
+  try {
+    const { adi_user_id, id: ticket_id } = req.params;
+
+    if (isNaN(adi_user_id) || isNaN(ticket_id)) {
+      return res.status(400).json({ ok: false, error: "IDs deben ser números" });
+    }
+
+    const data = await getTicketById(ticket_id);
+    if (!data || data.adi_user_id !== Number(adi_user_id)) {
+      return res.status(404).json({ ok: false, error: "Ticket no encontrado" });
+    }
+
+    res.json({ ok: true, data });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
  * GET /api/tickets/:id
  * Admin → cualquier ticket.
  * Técnico → solo el suyo (verificado por assigned_to).

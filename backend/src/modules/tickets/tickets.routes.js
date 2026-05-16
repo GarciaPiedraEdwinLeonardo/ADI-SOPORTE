@@ -4,6 +4,7 @@ import {
   createTicketValidation,
   getTickets,
   getUserTickets,
+  getUserTicket,
   getTicket,
   getTechnicians,
   patchAssignTicket,
@@ -32,6 +33,9 @@ router.post("/", createTicketValidation, postTicket);
 
 // GET    /api/tickets/user/:adi_user_id      Tickets de un usuario ADI
 router.get("/user/:adi_user_id", getUserTickets);
+
+// GET    /api/tickets/user/:adi_user_id/:id  Detalle de ticket para usuario ADI
+router.get("/user/:adi_user_id/:id", getUserTicket);
 
 // ─── PROTEGIDAS (admin + técnico) ────────────────────────────────────────────
 
