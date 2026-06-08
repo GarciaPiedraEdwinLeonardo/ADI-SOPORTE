@@ -567,7 +567,7 @@ El archivo `vercel.json` del frontend reescribe todas las rutas hacia `index.htm
 
 ## Equipo
 
-Proyecto desarrollado por **Equipo X-CORP** como tesina de licenciatura.
+Proyecto desarrollado por **Equipo X-CORP** como tesina nivel bachillerato tecnico.
 
 | Integrante                    |
 | ----------------------------- |
