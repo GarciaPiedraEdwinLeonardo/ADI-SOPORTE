@@ -621,6 +621,7 @@
   border-radius: 12px;
   color: #1a1a2e;
   word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .chatBubbleMe {
